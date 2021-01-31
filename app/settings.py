@@ -9,24 +9,28 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+from typing import Tuple, List
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
+def get_environment() -> Tuple[str, bool, List[str]]:
+    secret_key = os.environ.get('SECRET_KEY', 'development_secret_key')
+    debug = 'DEBUG' in os.environ
+    assert debug or 'SECRET_KEY' in os.environ
+    allowed_hosts = os.environ.get('ALLOWED_HOSTS', None)
+    if allowed_hosts is None:
+        allowed_hosts = []
+    else:
+        allowed_hosts = allowed_hosts.split(',')
+    return secret_key, debug, allowed_hosts
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'p1=e+)1pc97st%+@gitp1s^g1)%*g+5ytrzn06$bn0r&v^=p9$'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
+SECRET_KEY, DEBUG, ALLOWED_HOSTS = get_environment()
 
 # Application definition
 
