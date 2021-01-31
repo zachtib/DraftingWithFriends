@@ -9,10 +9,19 @@ class DraftCreationTestCase(TestCase):
         self.draft: Draft = Draft.objects.create(name="Test Draft")
         self.user: User = User.objects.create_user("testuser")
 
+    def test_draft_url(self):
+        url = self.draft.get_absolute_url()
+        self.assertEqual(f'/drafts/{self.draft.uuid}/', url)
+
     def test_joining_draft(self):
         entry: DraftEntry = self.draft.join(self.user)
         self.assertEqual(entry.draft, self.draft)
         self.assertEqual(entry.player, self.user)
+
+    def test_entry_string(self):
+        entry: DraftEntry = self.draft.join(self.user)
+        string = str(entry)
+        self.assertEqual('Entry for testuser in Test Draft', string)
 
     def test_attempting_to_join_twice_does_not_create_extra_entry(self):
         entry_a: DraftEntry = self.draft.join(self.user)
@@ -78,6 +87,12 @@ class DraftCreationTestCase(TestCase):
         seat = self.draft.get_seat_for_user(user2)
         self.assertIsNone(seat)
 
+    def test_beginning_a_draft_deletes_the_entries(self):
+        self.draft.join(self.user)
+        begun = self.draft.begin()
+        self.assertTrue(begun)
+        self.assertEqual(0, self.draft.entries.count())
+
 
 class DraftProgressTestCase(TestCase):
     def setUp(self) -> None:
@@ -106,6 +121,15 @@ class DraftProgressTestCase(TestCase):
     def test_getting_pack(self):
         pack = self.seat_a.get_current_pack()
         self.assertEqual(self.pack_a, pack)
+
+    def test_seat_str(self):
+        string = str(self.seat_a)
+        self.assertEqual('Seat #0 of Test Draft: user_a', string)
+
+    def test_seat_str_bot(self):
+        seat = DraftSeat.objects.create(draft=self.draft, user=None, position=0)
+        string = str(seat)
+        self.assertEqual('Seat #0 of Test Draft: Bot', string)
 
     def test_getting_pack_at_a_seat_with_more_than_one(self):
         DraftPack.objects.bulk_create([
@@ -178,3 +202,12 @@ class DraftProgressTestCase(TestCase):
         self.seat_a.make_selection(card_id)
         pack = DraftPack.objects.get(id=pack_id)
         self.assertEqual(3, pack.seat_number)
+
+    def test_deleting_a_started_draft(self):
+        self.draft.begin()
+        self.draft.delete()
+
+        self.assertEqual(0, DraftPack.objects.count())
+        self.assertEqual(0, DraftCard.objects.count())
+        self.assertEqual(0, DraftSeat.objects.count())
+        self.assertEqual(0, DraftEntry.objects.count())

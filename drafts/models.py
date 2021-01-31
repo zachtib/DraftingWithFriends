@@ -12,6 +12,13 @@ class Draft(models.Model):
     current_round = models.IntegerField(default=0)
     max_players = models.IntegerField(default=8)
 
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        from django.shortcuts import reverse
+        return reverse('draft-detail', args=[self.uuid])
+
     def join(self, user: User) -> Optional['DraftEntry']:
         try:
             return self.entries.get(player_id=user.id)
@@ -33,7 +40,9 @@ class Draft(models.Model):
         shuffle(players)
         for seat, player in enumerate(players):
             DraftSeat.objects.create(draft=self, user=player, position=seat)
+        self.entries.all().delete()
         self.current_round = 1
+        return True
 
     def is_user_in_draft(self, user: User) -> bool:
         for seat in self.seats.all():
@@ -55,11 +64,21 @@ class DraftEntry(models.Model):
     draft = models.ForeignKey(Draft, on_delete=models.CASCADE, related_name='entries')
     player = models.ForeignKey(User, on_delete=models.CASCADE, related_name='entries')
 
+    def __str__(self):
+        return f'Entry for {self.player.username} in {self.draft}'
+
 
 class DraftSeat(models.Model):
     draft = models.ForeignKey(Draft, on_delete=models.CASCADE, related_name='seats')
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     position = models.IntegerField()
+
+    def __str__(self):
+        if self.user is None:
+            seat_name = 'Bot'
+        else:
+            seat_name = self.user.username
+        return f'Seat #{self.position} of {self.draft}: {seat_name}'
 
     def get_pack_count(self) -> int:
         return self.draft.packs.filter(seat_number=self.position).count()
