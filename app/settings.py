@@ -18,19 +18,15 @@ from typing import Tuple, List
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-def get_environment() -> Tuple[str, bool, List[str]]:
-    secret_key = os.environ.get('SECRET_KEY', 'development_secret_key')
-    debug = 'DEBUG' in os.environ
-    assert debug or 'SECRET_KEY' in os.environ
-    allowed_hosts = os.environ.get('ALLOWED_HOSTS', None)
-    if allowed_hosts is None:
-        allowed_hosts = []
-    else:
-        allowed_hosts = allowed_hosts.split(',')
-    return secret_key, debug, allowed_hosts
+SECRET_KEY = os.environ.get('SECRET_KEY', 'development_secret_key')
+DEBUG = 'DEBUG' in os.environ
+assert DEBUG or 'SECRET_KEY' in os.environ
 
-
-SECRET_KEY, DEBUG, ALLOWED_HOSTS = get_environment()
+allowed_hosts = os.environ.get('ALLOWED_HOSTS', None)
+if allowed_hosts is None:
+    ALLOWED_HOSTS = []
+else:
+    ALLOWED_HOSTS = allowed_hosts.split(',')
 
 # Application definition
 
