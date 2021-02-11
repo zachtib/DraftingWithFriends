@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
+    'debug_toolbar',
+
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -46,6 +48,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.github',
 
     'cards',
+    'cubes',
     'drafts',
     'home',
 ]
