@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{{ draft.name }}</h1>
+
+    <p>{{ draft.current_round }}</p>
+
+    {% for entry in draft.entries.all %}
+        <p>{{ entry }}</p>
+    {% endfor %}
+
+    {% for seat in draft.seats.all %}
+        <p>{{ seat }}</p>
+        <p>{{ seat.get_current_pack }}</p>
+    {% endfor %}
+{% endblock %}

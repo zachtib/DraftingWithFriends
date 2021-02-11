@@ -2,7 +2,7 @@ import uuid
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, reverse
 
 from .models import Draft, DraftEntry, DraftSeat
 
@@ -20,13 +20,16 @@ def my_drafts(request):
     return HttpResponse('\n'.join(response))
 
 
+@login_required
 def draft_detail(request, draft_id: uuid):
     draft = get_object_or_404(Draft, uuid=draft_id)
 
-    return HttpResponse(f'''
-    {draft.name}
-    Players: {draft.entries.count()}/{draft.max_players}
-    '''.strip())
+    # join_url = reverse('join-draft', args=[draft.uuid])
+    join_url = ''
+    return render(request, 'drafts/detail.html', {
+        'join_url': join_url,
+        'draft': draft,
+    })
 
 
 @login_required
