@@ -5,12 +5,15 @@ from typing import Optional, List
 from django.contrib.auth.models import User
 from django.db import models
 
+from cubes.models import Cube
+
 
 class Draft(models.Model):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4)
     name = models.CharField(max_length=100)
     current_round = models.IntegerField(default=0)
     max_players = models.IntegerField(default=8)
+    cube = models.ForeignKey(Cube, null=True, default=None, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name
@@ -41,6 +44,12 @@ class Draft(models.Model):
         for seat, player in enumerate(players):
             DraftSeat.objects.create(draft=self, user=player, position=seat)
         self.entries.all().delete()
+        if self.cube is not None:
+            packs = self.cube.generate_packs()
+            for seat in self.seats.all():
+                for i in range(1, self.cube.default_pack_count + 1):
+                    pack = DraftPack.objects.create(draft=self, round_number=i, seat_number=seat.position)
+
         self.current_round = 1
         return True
 
